@@ -46,30 +46,41 @@ add-highlighter shared/janet/code/ regex \
 evaluate-commands %sh{
     symbol_char='[^\s()\[\]{}"\;@^`~\\%/]'
     modules="
-    array buffer debug fiber file int janet math module os parser peg string
-    table tarray thread tuple net"
+    array buffer debug fiber file int janet math module net os parser peg string
+    table tarray thread tuple"
     keywords="
-     * *= + ++ += - -- -= -> ->> -?> -?>> < <= = == > >= abstract? all all-bindings
-     all-dynamics and apply array array? as-> as?-> asm assert bad-compile bad-parse band
-     blshift bnot boolean? bor brshift brushift buffer buffer? bxor bytes? case cfunction?
-     cli-main comment comp compile complement cond coro count debug dec deep-not= deep=
-     def def- default defglobal defmacro defmacro- defn defn- describe dictionary?
-     disasm distinct doc doc* doc-format dofile drop drop-until drop-while dyn
-     each eachk eachp empty? env-lookup eprin eprint eprintf error eval eval-string even? every?
-     extreme false? fiber? filter find find-index first flatten flatten-into for freeze
-     frequencies function? gccollect gcinterval gcsetinterval generate gensym get
-     get-in getline hash idempotent? identity if-let if-not import import* in
-     inc indexed? int? interleave interpose invert juxt juxt* keep keys keyword
-     keyword? kvs last length let load-image loop macex macex1 make-env make-image
-     map mapcat marshal match max max-order mean merge merge-into min min-order nat?
-     native neg? next nil? not not= not== number? odd? one? or order< order<= order>
-     order>= pairs partial partition pos? postwalk pp prewalk prin print printf product
-     propagate put put-in quit range reduce repl require resume reverse run-context
-     scan-number seq setdyn short-fn slice slurp some sort sort-by sorted sorted-by spit stderr stdin
-     stdout string string? struct struct? sum symbol symbol? table table? take
-     take-until take-while trace tracev true? try tuple tuple? type unless unmarshal untrace
-     update update-in use values var varfn varglobal walk when when-let while with with-dyns
-     with-syms with-vars yield zero? if while fn defer prompt label protect set reduce2 accumulate accumulate2"
+       % %= * *= + ++ += - -- -= -> ->> -?> -?>> / /= < <= = > >=
+       abstract? accumulate accumulate2 all all-bindings all-dynamics
+       and any? apply array array? as-> as?-> asm assert bad-compile
+       bad-parse band blshift bnot boolean? bor brshift brushift buffer
+       buffer? bxor bytes? cancel case cfunction? chr cli-main cmp comment
+       comp compare compare< compare<= compare= compare> compare>= compile
+       complement comptime cond coro count curenv debug debugger-env dec
+       deep-not= deep= def- default default-peg-grammar defer defglobal
+       defmacro defmacro- defn defn- describe dictionary? disasm distinct
+       doc doc* doc-format dofile drop drop-until drop-while dyn each
+       eachk eachp eachy edefer eflush empty? env-lookup eprin eprinf
+       eprint eprintf error errorf eval eval-string even? every? extreme
+       false? fiber? filter find find-index first flatten flatten-into
+       flush for forever forv freeze frequencies function? gccollect
+       gcinterval gcsetinterval generate gensym get get-in getline
+       hash idempotent? identity if-let if-not if-with import import*
+       in inc index-of indexed? int? interleave interpose invert
+       juxt juxt* keep keys keyword keyword? kvs label last length
+       let load-image load-image-dict loop macex macex1 make-env
+       make-image make-image-dict map mapcat marshal match max mean
+       merge merge-into min mod nan? nat? native neg? next nil? not not=
+       number? odd? one? or pairs parse partial partition pos? postwalk pp
+       prewalk prin prinf print printf product prompt propagate protect
+       put put-in quit range reduce reduce2 repeat repl require resume
+       return reverse reverse! root-env run-context scan-number seq setdyn
+       short-fn signal slice slurp some sort sort-by sorted sorted-by
+       spit stderr stdin stdout string string? struct struct? sum
+       symbol symbol? table table? take take-until take-while trace
+       tracev true? truthy? try tuple tuple? type unless unmarshal
+       untrace update update-in use values var- varfn varglobal walk
+       when when-let when-with with with-dyns with-syms with-vars xprin
+       xprinf xprint xprintf yield zero? zipcoll"
 
     join() { sep=$2; set -- $1; IFS="$sep"; echo "$*"; }
     keywords() {
@@ -113,7 +124,7 @@ define-command -hidden janet-configure-window %{
 
     set window formatcmd jfmt
     hook buffer BufWritePre .* %{format}
-    map global user -docstring 'open janet'         J     ': connect-terminal janet<ret>'
+    map global user -docstring 'open janet' J ': terminal janet<ret>'
 }
 
 define-command -hidden janet-trim-indent lisp-trim-indent
