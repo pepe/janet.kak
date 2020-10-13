@@ -46,8 +46,8 @@ add-highlighter shared/janet/code/ regex \
 evaluate-commands %sh{
     symbol_char='[^\s()\[\]{}"\;@^`~\\%/]'
     modules="
-    array buffer debug fiber file int janet math module net os parser peg string
-    table tarray thread tuple"
+    array buffer debug fiber file int janet math module os parser peg string
+    table tarray thread tuple net"
     keywords="
        % %= * *= + ++ += - -- -= -> ->> -?> -?>> / /= < <= = > >=
        abstract? accumulate accumulate2 all all-bindings all-dynamics
@@ -114,6 +114,29 @@ evaluate-commands %sh{
 
 # Commands
 # ‾‾‾‾‾‾‾‾
+define-command janet-doc %{ evaluate-commands  %{
+    write
+    # -- Janet OUTPUT stored in %reg{o}
+    set-register o %sh{
+      output=$(mktemp -d "${TMPDIR:-/tmp}"/kak-jesty.XXXXXXXX)/fifo
+      mkfifo $output
+      printf "%s" "$output"
+   }
+   # -- Execute Jesty
+   nop %sh{
+     ( janet -q -e "(print (doc ${kak_selection}))" | tr -d '\r' > ${kak_reg_o} 2>&1 & ) > /dev/null 2>&1 < /dev/null }
+   # -- Setup and populate *search* bufferne
+   edit! -fifo %reg{o} *janet.doc*
+   set-option buffer filetype janet
+   hook -always -once buffer BufCloseFifo .* %{ nop %sh{ rm -r $(dirname ${kak_reg_o}) } }
+}}
+
+declare-user-mode janet
+map global janet -docstring 'Open repl' r ': connect-terminal janet<ret>'
+map global janet -docstring 'tracev'    t ': surround<ret>(<a-;>itracev <esc>'
+map global janet -docstring 'strip '    T 'edd: delete-surround<ret>( <esc>'
+map global janet -docstring 'Janet doc' d ': janet-doc<ret>'
+
 define-command -hidden janet-configure-window %{
     hook window ModeChange pop:insert:.* -group janet-trim-indent  janet-trim-indent
     hook window InsertChar \n -group janet-indent janet-indent-on-new-line
@@ -124,7 +147,9 @@ define-command -hidden janet-configure-window %{
 
     set window formatcmd jfmt
     hook buffer BufWritePre .* %{format}
-    map global user -docstring 'open janet' J ': terminal janet<ret>'
+
+    map global normal -docstring 'Janet mode' § ': enter-user-mode janet<ret>'
+
 }
 
 define-command -hidden janet-trim-indent lisp-trim-indent
