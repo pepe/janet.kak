@@ -78,7 +78,7 @@ evaluate-commands %sh{
        spit stderr stdin stdout string string? struct struct? sum
        symbol symbol? table table? take take-until take-while trace
        tracev true? truthy? try tuple tuple? type unless unmarshal
-       untrace update update-in use values var- varfn varglobal walk
+       untrace update update-in use values var var- varfn varglobal walk
        when when-let when-with with with-dyns with-syms with-vars xprin
        xprinf xprint xprintf yield zero? zipcoll"
 
@@ -159,7 +159,7 @@ define-command -hidden janet-filter-around-selections lisp-filter-around-selecti
 declare-option \
     -docstring 'regex matching the head of forms which have options *and* indented bodies' \
     regex janet_special_indent_forms \
-    '(?:def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|))|defer|do|match'
+    '(?:def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|))|defer|do|match|var'
 
 define-command -hidden janet-indent-on-new-line %{
     # registers: i = best align point so far; w = start of first word of form
