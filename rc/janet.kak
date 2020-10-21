@@ -56,7 +56,7 @@ evaluate-commands %sh{
        buffer? bxor bytes? cancel case cfunction? chr cli-main cmp comment
        comp compare compare< compare<= compare= compare> compare>= compile
        complement comptime cond coro count curenv debug debugger-env dec
-       deep-not= deep= def- default default-peg-grammar defer defglobal
+       deep-not= deep= def def- default default-peg-grammar defer defglobal
        defmacro defmacro- defn defn- describe dictionary? disasm distinct
        doc doc* doc-format dofile drop drop-until drop-while dyn each
        eachk eachp eachy edefer eflush empty? env-lookup eprin eprinf
