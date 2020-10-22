@@ -73,13 +73,13 @@ evaluate-commands %sh{
        number? odd? one? or pairs parse partial partition pos? postwalk pp
        prewalk prin prinf print printf product prompt propagate protect
        put put-in quit range reduce reduce2 repeat repl require resume
-       return reverse reverse! root-env run-context scan-number seq setdyn
+       return reverse reverse! root-env run-context scan-number set seq setdyn
        short-fn signal slice slurp some sort sort-by sorted sorted-by
        spit stderr stdin stdout string string? struct struct? sum
        symbol symbol? table table? take take-until take-while trace
        tracev true? truthy? try tuple tuple? type unless unmarshal
        untrace update update-in use values var var- varfn varglobal walk
-       when when-let when-with with with-dyns with-syms with-vars xprin
+       when when-let when-with while with with-dyns with-syms with-vars xprin
        xprinf xprint xprintf yield zero? zipcoll"
 
     join() { sep=$2; set -- $1; IFS="$sep"; echo "$*"; }
