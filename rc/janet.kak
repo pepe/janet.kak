@@ -58,7 +58,7 @@ evaluate-commands %sh{
        complement comptime cond coro count curenv debug debugger-env dec
        deep-not= deep= def def- default default-peg-grammar defer defglobal
        defmacro defmacro- defn defn- describe dictionary? disasm distinct
-       doc doc* doc-format dofile drop drop-until drop-while dyn each
+       do doc doc* doc-format dofile drop drop-until drop-while dyn each
        eachk eachp eachy edefer eflush empty? env-lookup eprin eprinf
        eprint eprintf error errorf eval eval-string even? every? extreme
        false? fiber? filter find find-index first flatten flatten-into
