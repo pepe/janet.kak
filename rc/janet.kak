@@ -64,7 +64,7 @@ evaluate-commands %sh{
        false? fiber? filter find find-index first flatten flatten-into
        flush for forever forv freeze frequencies function? gccollect
        gcinterval gcsetinterval generate gensym get get-in getline
-       hash idempotent? identity if-let if-not if-with import import*
+       hash idempotent? identity if if-let if-not if-with import import*
        in inc index-of indexed? int? interleave interpose invert
        juxt juxt* keep keys keyword keyword? kvs label last length
        let load-image load-image-dict loop macex macex1 make-env
