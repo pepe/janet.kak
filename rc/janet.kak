@@ -42,7 +42,7 @@ require-module lisp
 add-highlighter shared/janet regions
 add-highlighter shared/janet/code default-region group
 add-highlighter shared/janet/comment region '(?<!\\)(?:\\\\)*\K#' '$'                 fill comment
-add-highlighter shared/janet/string  region '(?<!\\)(?:\\\\)*\K"' '(?<!\\)(?:\\\\)*"' fill string
+add-highlighter shared/janet/string  region '(^\s+```)|(?<!\\)(?:\\\\)*\K"' '(^\s+```)|(?<!\\)(?:\\\\)*"' fill string
 
 add-highlighter shared/janet/code/ regex \b(nil|true|false)\b 0:value
 add-highlighter shared/janet/code/ regex \
