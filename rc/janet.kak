@@ -29,7 +29,7 @@ hook -group janet-insert global BufNewFile .*[.](janet|jdn) %{
 
 provide-module janet %{
 
-  require-module lisp
+require-module lisp
 
 # Highlighters
 # ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -41,46 +41,16 @@ add-highlighter shared/janet/string  region '(?<!\\)(?:\\\\)*\K"' '(?<!\\)(?:\\\
 
 add-highlighter shared/janet/code/ regex \b(nil|true|false)\b 0:value
 add-highlighter shared/janet/code/ regex \
-    \\(?:space|tab|newline|return|backspace|formfeed|u[0-9a-fA-F]{4}|o[0-3]?[0-7]{1,2}|.)\b 0:string
+    \\(?:j|tab|newline|return|backspace|formfeed|u[0-9a-fA-F]{4}|o[0-3]?[0-7]{1,2}|.)\b 0:string
 
 evaluate-commands %sh{
     symbol_char='[^\s()\[\]{}"\;@^`~\\%/]'
     modules="
-    array buffer debug fiber file int janet math module os parser peg string
-    table tarray thread tuple net"
+    array buffer ev debug fiber file int janet math module net os parser peg string
+    table tarray thread tuple"
     keywords="
-       % %= * *= + ++ += - -- -= -> ->> -?> -?>> / /= < <= = > >=
-       abstract? accumulate accumulate2 all all-bindings all-dynamics
-       and any? apply array array? as-> as?-> asm assert bad-compile
-       bad-parse band blshift bnot boolean? bor brshift brushift buffer
-       buffer? bxor bytes? cancel case cfunction? chr cli-main cmp comment
-       comp compare compare< compare<= compare= compare> compare>= compile
-       complement comptime cond coro count curenv debug debugger-env dec
-       deep-not= deep= def def- default default-peg-grammar defer defglobal
-       defmacro defmacro- defn defn- describe dictionary? disasm distinct
-       do doc doc* doc-format dofile drop drop-until drop-while dyn each
-       eachk eachp eachy edefer eflush empty? env-lookup eprin eprinf
-       eprint eprintf error errorf eval eval-string even? every? extreme
-       false? fiber? filter find find-index first flatten flatten-into
-       flush for forever forv freeze frequencies function? gccollect
-       gcinterval gcsetinterval generate gensym get get-in getline
-       hash idempotent? identity if if-let if-not if-with import import*
-       in inc index-of indexed? int? interleave interpose invert
-       juxt juxt* keep keys keyword keyword? kvs label last length
-       let load-image load-image-dict loop macex macex1 make-env
-       make-image make-image-dict map mapcat marshal match max mean
-       merge merge-into min mod nan? nat? native neg? next nil? not not=
-       number? odd? one? or pairs parse partial partition pos? postwalk pp
-       prewalk prin prinf print printf product prompt propagate protect
-       put put-in quit range reduce reduce2 repeat repl require resume
-       return reverse reverse! root-env run-context scan-number set seq setdyn
-       short-fn signal slice slurp some sort sort-by sorted sorted-by
-       spit stderr stdin stdout string string? struct struct? sum
-       symbol symbol? table table? take take-until take-while trace
-       tracev true? truthy? try tuple tuple? type unless unmarshal
-       untrace update update-in use values var var- varfn varglobal walk
-       when when-let when-with while with with-dyns with-syms with-vars xprin
-       xprinf xprint xprintf yield zero? zipcoll"
+      $(janet -e '(print (string "def var fn do quote if splice while break set quasiquote unquote upscope "(string/slice (string/format "%j" (all-bindings)) 2 -2)))')
+    "
 
     join() { sep=$2; set -- $1; IFS="$sep"; echo "$*"; }
     keywords() {
@@ -118,24 +88,52 @@ define-command janet-doc %{ evaluate-commands  %{
     write
     # -- Janet OUTPUT stored in %reg{o}
     set-register o %sh{
-      output=$(mktemp -d "${TMPDIR:-/tmp}"/kak-jesty.XXXXXXXX)/fifo
+      output=$(mktemp -d "${TMPDIR:-/tmp}"/kak-janet-doc.XXXXXXXX)/fifo
       mkfifo $output
       printf "%s" "$output"
    }
-   # -- Execute Jesty
+   # -- Execute janet doc
    nop %sh{
      ( janet -q -e "(print (doc ${kak_selection}))" | tr -d '\r' > ${kak_reg_o} 2>&1 & ) > /dev/null 2>&1 < /dev/null }
-   # -- Setup and populate *search* bufferne
-   edit! -fifo %reg{o} *janet.doc*
-   set-option buffer filetype janet
+   # -- Setup and populate *doc* bufferne
+   edit! -fifo %reg{o} *doc*
+   set-option buffer filetype scratch
+   hook -always -once buffer BufCloseFifo .* %{ nop %sh{ rm -r $(dirname ${kak_reg_o}) } }
+}}
+
+define-command janet-fly %{ evaluate-commands  %{
+    write
+    # -- Janet OUTPUT stored in %reg{o}
+    set-register o %sh{
+      output=$(mktemp -d "${TMPDIR:-/tmp}"/kak-janet-fly.XXXXXXXX)/fifo
+      mkfifo $output
+      printf "%s" "$output"
+   }
+   # -- Execute janet -k
+   nop %sh{
+     ( janet -k ${kak_buffile}  2>&1 >/dev/null | tr -d '\r' > ${kak_reg_o} 2>&1 & ) > /dev/null 2>&1 < /dev/null }
+
+   edit! -fifo %reg{o} *flycheck*
+   set-option buffer filetype scratch
    hook -always -once buffer BufCloseFifo .* %{ nop %sh{ rm -r $(dirname ${kak_reg_o}) } }
 }}
 
 declare-user-mode janet
-map global janet -docstring 'Open repl' r ': connect-terminal janet<ret>'
-map global janet -docstring 'tracev'    t ': surround<ret>(<a-;>itracev <esc>'
-map global janet -docstring 'strip '    T 'edd: delete-surround<ret>( <esc>'
-map global janet -docstring 'Janet doc' d ': janet-doc<ret>'
+map global janet -docstring 'repl'      r     ': connect-terminal janet<ret>'
+map global janet -docstring 'tracev'    t     ': surround<ret>(<a-;>itracev <esc>'
+map global janet -docstring 'strip '    T     'edd: delete-surround<ret>( <esc>'
+map global janet -docstring 'Janet doc' d     ': janet-doc<ret>'
+map global janet -docstring 'Janet fly' y     ': janet-fly<ret>'
+map global janet -docstring 'fn'        f     ': surround<ret>(<a-;>ifn []'
+map global janet -docstring 'defn'      F     ': surround<ret>(<a-;>idefn [] <esc><a-f>na'
+map global janet -docstring 'defn-'     <a-F> ': surround<ret>(<a-;>idefn- [] <esc><a-f>na'
+map global janet -docstring 'def'       D     ': surround<ret>(<a-;>idef  <esc>hi'
+map global janet -docstring 'def-'      <a-d> ': surround<ret>(<a-;>idef-  <esc>hi'
+map global janet -docstring 'var'       v     ': surround<ret>(<a-;>ivar  <esc>hi'
+map global janet -docstring 'var-'      <a-v> ': surround<ret>(<a-;>ivar-  <esc>hi'
+map global janet -docstring 'if'        i     ': surround<ret>(<a-;>iif  <esc>hi'
+map global janet -docstring 'when'      w     ': surround<ret>(<a-;>iwhen  <esc>hi'
+map global janet -docstring 'default'   e     ': surround<ret>(<a-;>idefault  <esc>hi'
 
 define-command -hidden janet-configure-window %{
     hook window ModeChange pop:insert:.* -group janet-trim-indent  janet-trim-indent
@@ -145,7 +143,10 @@ define-command -hidden janet-configure-window %{
     hook -once -always window WinSetOption filetype=.* %{ remove-hooks window janet-.+ }
     set-option window extra_word_chars . / * ? + - < > ! : "'"
 
-    set window formatcmd jfmt
+    set-option window lintcmd /usr/local/bin/jlnt
+    hook buffer BufWritePost .* %{lint}
+
+    set-option window formatcmd /usr/local/bin/jfmt
     hook buffer BufWritePre .* %{format}
 
     map global normal -docstring 'Janet mode' § ': enter-user-mode janet<ret>'
@@ -169,7 +170,7 @@ define-command -hidden janet-indent-on-new-line %{
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
 
             try %{
-                # If a special form, indent another space
+                # If a special form, indent another j
                 execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret><a-L>s.\K.*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
                 # If not special and parameter appears on line 1, indent to parameter
