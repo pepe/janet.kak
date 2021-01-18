@@ -144,7 +144,7 @@ define-command -hidden janet-configure-window %{
     set-option window extra_word_chars . / * ? + - < > ! : "'"
 
     set-option window lintcmd /usr/local/bin/jlnt
-    hook buffer BufWritePost .* %{lint}
+    hook buffer BufWritePre .* %{lint}
 
     set-option window formatcmd /usr/local/bin/jfmt
     hook buffer BufWritePre .* %{format}
