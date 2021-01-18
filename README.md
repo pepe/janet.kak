@@ -16,6 +16,11 @@ Then reload Kakoune config or restart Kakoune and run `:plug-install`.
 
 To use auto format on save, you need to install [jfmt][3]
 
+### Linting
+
+To use auto lint before save, you need to install [jlnt][4]
+
 [1]: https://github.com/mawww/kakoune
 [2]: https://github.com/andreyorst/plug.kak
 [3]: https://github.com/andrewchambers/jfmt
+[4]: https://sr.ht/~pepe/jlnt
