@@ -10,6 +10,11 @@ hook global BufCreate .*[.](janet|jdn) %{
     set-option buffer filetype janet
 }
 
+hook global BufSetOption filetype=janet %{
+    set-option buffer comment_line '#'
+    set-option buffer comment_block_begin '(comment '
+    set-option buffer comment_block_end ')'
+}
 # Initialization
 # ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 #
@@ -85,7 +90,6 @@ evaluate-commands %sh{
 # Commands
 # ‾‾‾‾‾‾‾‾
 define-command janet-doc %{ evaluate-commands  %{
-    write
     # -- Janet OUTPUT stored in %reg{o}
     set-register o %sh{
       output=$(mktemp -d "${TMPDIR:-/tmp}"/kak-janet-doc.XXXXXXXX)/fifo
@@ -119,29 +123,34 @@ define-command janet-fly %{ evaluate-commands  %{
 }}
 
 declare-user-mode janet
-map global janet -docstring 'repl'      r     ': connect-terminal janet<ret>'
-map global janet -docstring 'tracev'    t     ': surround<ret>(<a-;>itracev <esc>'
-map global janet -docstring 'strip '    T     'edd: delete-surround<ret>( <esc>'
-map global janet -docstring 'Janet doc' d     ': janet-doc<ret>'
-map global janet -docstring 'Janet fly' y     ': janet-fly<ret>'
-map global janet -docstring 'fn'        f     ': surround<ret>(<a-;>ifn []'
-map global janet -docstring 'defn'      F     ': surround<ret>(<a-;>idefn [] <esc><a-f>na'
-map global janet -docstring 'defn-'     <a-F> ': surround<ret>(<a-;>idefn- [] <esc><a-f>na'
-map global janet -docstring 'def'       D     ': surround<ret>(<a-;>idef  <esc>hi'
-map global janet -docstring 'def-'      <a-d> ': surround<ret>(<a-;>idef-  <esc>hi'
-map global janet -docstring 'var'       v     ': surround<ret>(<a-;>ivar  <esc>hi'
-map global janet -docstring 'var-'      <a-v> ': surround<ret>(<a-;>ivar-  <esc>hi'
-map global janet -docstring 'if'        i     ': surround<ret>(<a-;>iif  <esc>hi'
-map global janet -docstring 'when'      w     ': surround<ret>(<a-;>iwhen  <esc>hi'
-map global janet -docstring 'default'   e     ': surround<ret>(<a-;>idefault  <esc>hi'
+map global janet -docstring 'repl'      r ': connect-terminal janet<ret>'
+map global janet -docstring 'tracev'    t ': surround<ret>(<a-;>itracev <esc>'
+map global janet -docstring 'strip '    T 'edd: delete-surround<ret>( <esc>'
+map global janet -docstring 'Janet doc' d ': janet-doc<ret>'
+map global janet -docstring 'wrap'      w ': surround<ret>(ma<esc>'
+map global janet -docstring 'unwrap'    W ': delete-surround<ret>('
+map global janet -docstring 'snips'     s ': enter-user-mode janet-snips<ret>'
+map global janet -docstring 'comment'   c ': comment-line<ret>'
+map global janet -docstring 'Comment'   C ': comment-block<ret>'
+
+declare-user-mode janet-snips
+map global janet-snips -docstring 'fn'        f     ': surround<ret>(<a-;>ifn []'
+map global janet-snips -docstring 'defn'      F     ': surround<ret>(<a-;>idefn [] <esc><a-;>hi'
+map global janet-snips -docstring 'defn-'     <a-F> ': surround<ret>(<a-;>idefn- [] <esc><a-;>hi'
+map global janet-snips -docstring 'def'       D     ': surround<ret>(<a-;>idef  <esc>hi'
+map global janet-snips -docstring 'def-'      <a-d> ': surround<ret>(<a-;>idef-  <esc>hi'
+map global janet-snips -docstring 'var'       v     ': surround<ret>(<a-;>ivar  <esc>hi'
+map global janet-snips -docstring 'var-'      <a-v> ': surround<ret>(<a-;>ivar-  <esc>hi'
+map global janet-snips -docstring 'if'        i     ': surround<ret>(<a-;>iif  <esc>hi'
+map global janet-snips -docstring 'when'      w     ': surround<ret>(<a-;>iwhen  <esc>hi'
+map global janet-snips -docstring 'default'   e     ': surround<ret>(<a-;>idefault  <esc>hi'
 
 define-command -hidden janet-configure-window %{
     hook window ModeChange pop:insert:.* -group janet-trim-indent  janet-trim-indent
     hook window InsertChar \n -group janet-indent janet-indent-on-new-line
 
-    set-option buffer extra_word_chars '_' . / * ? + - < > ! : "'"
+    set-option buffer extra_word_chars '_' - . / * ? + < > ! : "'"
     hook -once -always window WinSetOption filetype=.* %{ remove-hooks window janet-.+ }
-    set-option window extra_word_chars . / * ? + - < > ! : "'"
 
     set-option window lintcmd /usr/local/bin/jlnt
     hook buffer BufWritePre .* %{lint}
@@ -149,7 +158,7 @@ define-command -hidden janet-configure-window %{
     set-option window formatcmd /usr/local/bin/jfmt
     hook buffer BufWritePre .* %{format}
 
-    map global normal -docstring 'Janet mode' § ': enter-user-mode janet<ret>'
+    map global normal -docstring 'Janet mode' <a-space> ': enter-user-mode janet<ret>'
 
 }
 
