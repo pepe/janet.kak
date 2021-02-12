@@ -10,14 +10,33 @@ hook global BufCreate .*[.](janet|jdn) %{
     set-option buffer filetype janet
 }
 
-hook global BufSetOption filetype=janet %{
-    set-option buffer comment_line '#'
-    set-option buffer comment_block_begin '(comment '
-    set-option buffer comment_block_end ')'
-}
+# Options
+# ‾‾‾‾‾‾‾
+
+declare-option -docstring %{
+    enable format on save for Janet files
+} bool janet_autoformat false
+
+declare-option -docstring %{
+    the command to use to format Janet files
+} str janet_formatcmd 'jfmt'
+
+declare-option -docstring %{
+    enable lint on save for Janet files
+} bool janet_autolint false
+
+declare-option -docstring %{
+    the command to use to lint Janet files
+} str janet_lintcmd 'jlnt'
+
 # Initialization
 # ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-#
+
+hook global BufSetOption filetype=janet %{
+    require-module janet
+    janet-configure-buffer
+}
+
 hook global WinSetOption filetype=janet %{
     require-module janet
     janet-configure-window
@@ -54,7 +73,7 @@ evaluate-commands %sh{
     array buffer ev debug fiber file int janet math module net os parser peg string
     table tarray thread tuple"
     keywords="
-      $(janet -e '(print (string "def var fn do quote if splice while break set quasiquote unquote upscope "(string/slice (string/format "%j" (all-bindings)) 2 -2)))')
+$(janet -e '(print (string "def var fn do quote if splice while break set quasiquote unquote upscope "(string/slice (string/format "%j" (all-bindings)) 2 -2)))')
     "
 
     join() { sep=$2; set -- $1; IFS="$sep"; echo "$*"; }
@@ -151,15 +170,33 @@ define-command -hidden janet-configure-window %{
 
     set-option buffer extra_word_chars '_' - . / * ? + < > ! : "'"
     hook -once -always window WinSetOption filetype=.* %{ remove-hooks window janet-.+ }
+}
 
-    set-option window lintcmd /usr/local/bin/jlnt
-    hook buffer BufWritePre .* %{lint}
+define-command -hidden janet-configure-buffer %{
+    set-option buffer comment_line '#'
+    set-option buffer comment_block_begin '(comment '
+    set-option buffer comment_block_end ')'
 
-    set-option window formatcmd /usr/local/bin/jfmt
-    hook buffer BufWritePre .* %{format}
-
-    map global normal -docstring 'Janet mode' <a-space> ': enter-user-mode janet<ret>'
-
+    evaluate-commands %sh{
+        [ "${KAK_OPT_JANET_AUTOLINT}" = false ] || {
+            printf '%s' '
+                set-option buffer lintcmd %opt{janet_lintcmd}
+                hook buffer BufWritePre .* -group janet-autolint %{lint}
+                hook -once -always buffer BufSetOption filetype=.* %{
+                    remove-hooks buffer janet-autolint
+                }
+            '
+        }
+        [ "${KAK_OPT_JANET_AUTOFORMAT}" = false ] || {
+            printf '%s' '
+                set-option buffer formatcmd %opt{janet_formatcmd}
+                hook buffer BufWritePre .* -group janet-autoformat %{format}
+                hook -once -always buffer BufSetOption filetype=.* %{
+                    remove-hooks buffer janet-autoformat
+                }
+            '
+        }
+    }
 }
 
 define-command -hidden janet-trim-indent lisp-trim-indent
