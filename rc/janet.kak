@@ -73,7 +73,7 @@ evaluate-commands %sh{
     array buffer ev debug fiber file int janet math module net os parser peg string
     table tarray thread tuple"
     keywords="
-$(janet -e '(print (string "def var fn do quote if splice while break set quasiquote unquote upscope "(string/slice (string/format "%j" (all-bindings)) 2 -2)))')
+$(janet -e '(print (string "def var fn do quote if splice while break set quasiquote unquote upscope "(string/slice (string/replace "%" "%%" (string/format "%j" (all-bindings))) 2 -2)))')
     "
 
     join() { sep=$2; set -- $1; IFS="$sep"; echo "$*"; }
@@ -90,7 +90,7 @@ $(janet -e '(print (string "def var fn do quote if splice while break set quasiq
 
     static_words="$(join "$keywords" ' ')"
 
-    printf %s "
+    printf "%s" "
         # Keywords
         add-highlighter shared/janet/code/ regex ::?(${symbol_char}+/)?${symbol_char}+ 0:value
 
