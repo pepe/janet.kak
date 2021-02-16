@@ -1,6 +1,6 @@
 # janet.kak
 
-Just barebone Janet language mode, copied from the clojure.kak, for [Kakoune][1].
+Just barebone [Janet][5] language mode, copied from the clojure.kak, for [Kakoune][1].
 
 ## Installation
 
@@ -45,3 +45,4 @@ map global user -docstring 'Janet mode' J ': enter-user-mode janet<ret>'
 [2]: https://github.com/andreyorst/plug.kak
 [3]: https://github.com/andrewchambers/jfmt
 [4]: https://git.sr.ht/~pepe/jlnt.kak
+[5]: https://github.com/janet-lang/janet
