@@ -44,4 +44,4 @@ map global user -docstring 'Janet mode' J ': enter-user-mode janet<ret>'
 [1]: https://github.com/mawww/kakoune
 [2]: https://github.com/andreyorst/plug.kak
 [3]: https://github.com/andrewchambers/jfmt
-[4]: https://sr.ht/~pepe/jlnt
+[4]: https://git.sr.ht/~pepe/jlnt.kak
