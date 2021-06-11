@@ -176,6 +176,7 @@ define-command -hidden janet-configure-buffer %{
     set-option buffer comment_line '#'
     set-option buffer comment_block_begin '(comment '
     set-option buffer comment_block_end ')'
+    set-option buffer indentwidth 2
 
     evaluate-commands %sh{
         [ "${KAK_OPT_JANET_AUTOLINT}" = false ] || {
@@ -216,22 +217,23 @@ define-command -hidden janet-indent-on-new-line %{
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
 
             try %{
-                # If a special form, indent another j
-                execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret><a-L>s.\K.*<ret><a-;>;"i<a-Z><gt>'
+                # If a special form, indent (indentwidth - 1) spaces
+                execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret>'
+                execute-keys -draft '"wze<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} '}\K.*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
-                try %{
-                    # If not special and parameter appears on line 1, indent to parameter
-                    execute-keys -draft '"wze<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
-                } catch %{
-                    # If parameters appear on next lines, indent as if the
-                    # function was a special form like try statement.
-                    execute-keys -draft '"wzl"i<a-Z><gt>'
-                }
+                # If not special and parameter appears on line 1,
+                # indent to parameter
+                execute-keys -draft '"wz<a-K>[()[\]{}]<ret>e<a-K>[\s()\[\]\{\}]<ret><a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
+            } catch %{
+                # If not special and parameters appear on the next lines,
+                # indent (indentwidth - 1) spaces
+                execute-keys -draft '"wze<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} '}\K.*<ret><a-;>;"i<a-Z><gt>'
             }
         }
         try %{ execute-keys -draft '[rl"i<a-Z><gt>' }
         try %{ execute-keys -draft '[Bl"i<a-Z><gt>' }
-        execute-keys -draft '"i<a-z>a&<space>'
+        # `;` eliminates selection so that `&` can work without an issue.
+        execute-keys -draft ';"i<a-z>a&<space>'
     }
 }
 
