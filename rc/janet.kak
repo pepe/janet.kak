@@ -219,8 +219,14 @@ define-command -hidden janet-indent-on-new-line %{
                 # If a special form, indent another j
                 execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret><a-L>s.\K.*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
-                # If not special and parameter appears on line 1, indent to parameter
-                execute-keys -draft '"wze<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
+                try %{
+                    # If not special and parameter appears on line 1, indent to parameter
+                    execute-keys -draft '"wze<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
+                } catch %{
+                    # If parameters appear on next lines, indent as if the
+                    # function was a special form like try statement.
+                    execute-keys -draft '"wzl"i<a-Z><gt>'
+                }
             }
         }
         try %{ execute-keys -draft '[rl"i<a-Z><gt>' }
