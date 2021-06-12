@@ -209,41 +209,60 @@ declare-option \
     regex janet_special_indent_forms \
     '(?:def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|))|defer|do|match|var|try'
 
+declare-option \
+    -docstring 'regex matching a word from the current cursor position' \
+    -hidden \
+    regex regex_word \
+    '<a-l>s\A[^\s]+<ret>'
+
 define-command -hidden janet-indent-on-new-line %{
     # registers: i = best align point so far; w = start of first word of form
     evaluate-commands -draft -save-regs '/"|^@iw' -itersel %{
-        # Remove leading spaces in the current line.
-        try %{ execute-keys -draft 'xs\A\h+<ret>d' }
-        # Remove trailing spaces in the previous line.
-        try %{ execute-keys -draft 'kxs\h+$<ret>d' }
         # Assign the left-most position to i register.
         execute-keys -draft 'gk"iZ'
         try %{
             # Set i and w registers to the position to the right of
-            # the left parenthesis
+            # the opening parenthesis
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
+            # Insert 4 spaces at the end of the line
+            # that has the opening parenthesis
+            # because extra spaces may be needed to calculate indentation.
+            # This is a dirty hack.
+            try %{ execute-keys -draft '"wzA<space><space><space><space>' }
 
             try %{
                 # If a special form, indent (indentwidth - 1) spaces
-                execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret>'
-                execute-keys -draft '"wze<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} '}\K.*<ret><a-;>;"i<a-Z><gt>'
+                execute-keys -draft '"wz' %opt{regex_word} '<a-k>\A' \
+                %opt{janet_special_indent_forms} '\z<ret>'
+                execute-keys -draft '"wz' %opt{regex_word} '<a-L>s.{' \
+                %sh{printf $(( kak_opt_indentwidth - 1 ))} \
+                '}\K.*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
                 # If not special and parameter appears on line 1,
                 # indent to parameter
-                execute-keys -draft '"wz<a-K>[()[\]{}]<ret>e<a-K>[\s()\[\]\{\}]<ret><a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
+                execute-keys -draft '"wz' %opt{regex_word} \
+                '<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
                 # If not special and parameters appear on the next lines,
                 # indent (indentwidth - 1) spaces
-                execute-keys -draft '"wze<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} '}\K.*<ret><a-;>;"i<a-Z><gt>'
+                execute-keys -draft '"wz' %opt{regex_word} '<a-L>s.{' \
+                %sh{printf $(( kak_opt_indentwidth - 1 ))} \
+                '}\K.*<ret><a-;>;"i<a-Z><gt>'
             }
         }
         # Assign the position next to the left bracket to i register
         try %{ execute-keys -draft '[rl"i<a-Z><gt>' }
         # Assign the position next to the left brace to i register
         try %{ execute-keys -draft '[Bl"i<a-Z><gt>' }
-        # `;` eliminates selection so that `&` can work without an issue.
+        # Remove leading spaces in the current line.
+        try %{ execute-keys -draft 'xs\A\h+<ret>d' }
         # Align the current line with i register.
+        # `;` eliminates selection so that `&` can work without an issue.
         execute-keys -draft ';"i<a-z>a&<space>'
+        # Remove trailing spaces in the previous line.
+        try %{ execute-keys -draft 'kxs\h+$<ret>d' }
+        # Remove trailing spaces in the line that has the opening parenthesis
+        try %{ execute-keys -draft '"wzxs\h+$<ret>d"' }
     }
 }
 }
