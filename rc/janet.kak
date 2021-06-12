@@ -179,7 +179,7 @@ define-command -hidden janet-configure-buffer %{
     set-option buffer indentwidth 2
 
     evaluate-commands %sh{
-        [ "${KAK_OPT_JANET_AUTOLINT}" = false ] || {
+        [ "${kak_opt_janet_autolint}" = false ] || {
             printf '%s' '
                 set-option buffer lintcmd %opt{janet_lintcmd}
                 hook buffer BufWritePre .* -group janet-autolint %{lint}
@@ -188,7 +188,7 @@ define-command -hidden janet-configure-buffer %{
                 }
             '
         }
-        [ "${KAK_OPT_JANET_AUTOFORMAT}" = false ] || {
+        [ "${kak_opt_janet_autoformat}" = false ] || {
             printf '%s' '
                 set-option buffer formatcmd %opt{janet_formatcmd}
                 hook buffer BufWritePre .* -group janet-autoformat %{format}
