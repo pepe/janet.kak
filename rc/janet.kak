@@ -212,8 +212,15 @@ declare-option \
 define-command -hidden janet-indent-on-new-line %{
     # registers: i = best align point so far; w = start of first word of form
     evaluate-commands -draft -save-regs '/"|^@iw' -itersel %{
+        # Remove leading spaces in the current line.
+        try %{ execute-keys -draft 'xs\A\h+<ret>d' }
+        # Remove trailing spaces in the previous line.
+        try %{ execute-keys -draft 'kxs\h+$<ret>d' }
+        # Assign the left-most position to i register.
         execute-keys -draft 'gk"iZ'
         try %{
+            # Set i and w registers to the position to the right of
+            # the left parenthesis
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
 
             try %{
@@ -230,12 +237,13 @@ define-command -hidden janet-indent-on-new-line %{
                 execute-keys -draft '"wze<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} '}\K.*<ret><a-;>;"i<a-Z><gt>'
             }
         }
+        # Assign the position next to the left bracket to i register
         try %{ execute-keys -draft '[rl"i<a-Z><gt>' }
+        # Assign the position next to the left brace to i register
         try %{ execute-keys -draft '[Bl"i<a-Z><gt>' }
         # `;` eliminates selection so that `&` can work without an issue.
+        # Align the current line with i register.
         execute-keys -draft ';"i<a-z>a&<space>'
     }
 }
-
-
 }
