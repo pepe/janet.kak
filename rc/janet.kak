@@ -205,15 +205,20 @@ define-command -hidden janet-trim-indent lisp-trim-indent
 define-command -hidden janet-filter-around-selections lisp-filter-around-selections
 
 declare-option \
-    -docstring 'regex matching the head of forms which have options *and* indented bodies' \
-    regex janet_special_indent_forms \
-    '(?:def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|))|defer|do|match|var|try'
+    -docstring 'regex matching the head of special forms' \
+    str-list janet_special_indent_forms \
+    'def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|)|' \
+    'defer|do|match|var|try'
 
 declare-option \
-    -docstring 'regex matching a word from the current cursor position' \
-    -hidden \
-    regex regex_word \
-    '<a-l>s\A[^\s]+<ret>'
+    -docstring 'keys that extend selection to the end of word from cursor' \
+    -hidden str word_end '?\s<ret>H'
+
+define-command -hidden janet-apply-indentwidth %{
+    execute-keys -draft '"wz' %opt{word_end} \
+    '<a-L>s.{' %sh{printf $(( kak_opt_indentwidth - 1 ))} \
+    '}\K.*<ret><a-;>;"i<a-Z><gt>'
+}
 
 define-command -hidden janet-indent-on-new-line %{
     # registers: i = best align point so far; w = start of first word of form
@@ -226,28 +231,26 @@ define-command -hidden janet-indent-on-new-line %{
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
             # Insert 4 spaces at the end of the line
             # that has the opening parenthesis
-            # because extra spaces may be needed to calculate indentation.
-            # This is a dirty hack.
-            try %{ execute-keys -draft '"wzA<space><space><space><space>' }
+            # because extra spaces may be needed to calculate indentation
+            # past the last character of the line that has
+            # the opening parenthesis
+            # TODO: This is a dirty hack. Remove this if possible.
+            execute-keys -draft '"wzA<space><space><space><space><esc>'
 
             try %{
-                # If a special form, indent (indentwidth - 1) spaces
-                execute-keys -draft '"wz' %opt{regex_word} '<a-k>\A' \
-                %opt{janet_special_indent_forms} '\z<ret>'
-                execute-keys -draft '"wz' %opt{regex_word} '<a-L>s.{' \
-                %sh{printf $(( kak_opt_indentwidth - 1 ))} \
-                '}\K.*<ret><a-;>;"i<a-Z><gt>'
+                # If it is a special form, indent (indentwidth - 1) spaces
+                execute-keys -draft '"wz' %opt{word_end} \
+                '<a-k>\A(?:' %opt{janet_special_indent_forms} ')\z<ret>'
+                janet-apply-indentwidth
             } catch %{
-                # If not special and parameter appears on line 1,
+                # If it is not special, and parameter appears on line 1,
                 # indent to parameter
-                execute-keys -draft '"wz' %opt{regex_word} \
+                execute-keys -draft '"wz' %opt{word_end} \
                 '<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
             } catch %{
-                # If not special and parameters appear on the next lines,
+                # If it is not special, and parameters appear on next lines,
                 # indent (indentwidth - 1) spaces
-                execute-keys -draft '"wz' %opt{regex_word} '<a-L>s.{' \
-                %sh{printf $(( kak_opt_indentwidth - 1 ))} \
-                '}\K.*<ret><a-;>;"i<a-Z><gt>'
+                janet-apply-indentwidth
             }
         }
         # Assign the position next to the left bracket to i register
@@ -255,14 +258,17 @@ define-command -hidden janet-indent-on-new-line %{
         # Assign the position next to the left brace to i register
         try %{ execute-keys -draft '[Bl"i<a-Z><gt>' }
         # Remove leading spaces in the current line.
-        try %{ execute-keys -draft 'xs\A\h+<ret>d' }
+        try %{ execute-keys -draft '<a-i><space>d' }
         # Align the current line with i register.
         # `;` eliminates selection so that `&` can work without an issue.
         execute-keys -draft ';"i<a-z>a&<space>'
-        # Remove trailing spaces in the previous line.
-        try %{ execute-keys -draft 'kxs\h+$<ret>d' }
+        # Remove trailing spaces in the previous line which may or may not be
+        # line that has the opening parenthesis.
+        try %{ execute-keys -draft 'kgl<a-i><space>d' }
         # Remove trailing spaces in the line that has the opening parenthesis
-        try %{ execute-keys -draft '"wzxs\h+$<ret>d"' }
+        # because 4 spaces were added at the end of the line.
+        # TODO: This is a dirty hack. Remove this if possible.
+        try %{ execute-keys -draft '"wzgl<a-i><space>d"' }
     }
 }
 }
