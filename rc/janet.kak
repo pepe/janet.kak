@@ -178,7 +178,7 @@ define-command -hidden janet-configure-buffer %{
     set-option buffer comment_block_end ')'
 
     evaluate-commands %sh{
-        [ "${KAK_OPT_JANET_AUTOLINT}" = false ] || {
+        [ "${kak_opt_janet_autolint}" = false ] || {
             printf '%s' '
                 set-option buffer lintcmd %opt{janet_lintcmd}
                 hook buffer BufWritePre .* -group janet-autolint %{lint}
@@ -187,7 +187,7 @@ define-command -hidden janet-configure-buffer %{
                 }
             '
         }
-        [ "${KAK_OPT_JANET_AUTOFORMAT}" = false ] || {
+        [ "${kak_opt_janet_autoformat}" = false ] || {
             printf '%s' '
                 set-option buffer formatcmd %opt{janet_formatcmd}
                 hook buffer BufWritePre .* -group janet-autoformat %{format}
@@ -204,30 +204,54 @@ define-command -hidden janet-trim-indent lisp-trim-indent
 define-command -hidden janet-filter-around-selections lisp-filter-around-selections
 
 declare-option \
-    -docstring 'regex matching the head of forms which have options *and* indented bodies' \
-    regex janet_special_indent_forms \
-    '(?:def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|))|defer|do|match|var'
+    -docstring 'regex matching the head of special forms' \
+    str-list janet_special_indent_forms \
+    '(?:' \
+    'def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|)|' \
+    'defer|do|match|var|try' \
+    ')'
+
+define-command -hidden janet-indent-2-spaces %{ try %{
+    execute-keys -draft '"wzh<a-l>Ls\A.{2}\K.*\z<ret><a-;>;"i<a-Z><gt>'
+} }
 
 define-command -hidden janet-indent-on-new-line %{
     # registers: i = best align point so far; w = start of first word of form
     evaluate-commands -draft -save-regs '/"|^@iw' -itersel %{
+        # Assign the left-most position to i register.
         execute-keys -draft 'gk"iZ'
+        # Try to indent inside a pair of parentheses.
         try %{
+            # Set w register and i register to
+            # the position to the right of an opening parenthesis.
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
+            # Remove leading spaces in the current line.
+            try %{ execute-keys -draft '<a-i><space>d' }
+            # Remove trailing spaces in the previous line
+            try %{ execute-keys -draft 'kgl<a-i><space>d' }
 
             try %{
-                # If a special form, indent another j
-                execute-keys -draft '"wze<a-k>\A' %opt{janet_special_indent_forms} '\z<ret><a-L>s.\K.*<ret><a-;>;"i<a-Z><gt>'
+                # If it is a special form, indent 2 spaces.
+                execute-keys -draft '"wz<a-l>s\A\h*\K\S+<ret>' \
+                '<a-k>\A' %opt{janet_special_indent_forms} '\z<ret>'
+                janet-indent-2-spaces
             } catch %{
-                # If not special and parameter appears on line 1, indent to parameter
-                execute-keys -draft '"wze<a-l>s\h\K[^\s].*<ret><a-;>;"i<a-Z><gt>'
+                # If it is not special, and parameters appear on line 1,
+                # indent to the first parameter
+                execute-keys -draft '"wz<a-l>s\A\h*\K\S+<ret>' \
+                '<a-l>s\h\K[^\s].*\z<ret><a-;>;"i<a-Z><gt>'
+            } catch %{
+                # If it is not special, and parameters appear on next lines,
+                janet-indent-2-spaces
             }
         }
+        # Should the line be indented to the right of an opening bracket?
         try %{ execute-keys -draft '[rl"i<a-Z><gt>' }
+        # Should the line be indented to the right of an opening brace?
         try %{ execute-keys -draft '[Bl"i<a-Z><gt>' }
-        execute-keys -draft '"i<a-z>a&<space>'
+        # Align the current line with i register.
+        # `;` reduces selections to cursors so that `&` works without an issue
+        execute-keys -draft ';"i<a-z>a&<space>'
     }
 }
-
-
 }
