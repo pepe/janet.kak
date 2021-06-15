@@ -141,6 +141,13 @@ define-command janet-fly %{ evaluate-commands  %{
    hook -always -once buffer BufCloseFifo .* %{ nop %sh{ rm -r $(dirname ${kak_reg_o}) } }
 }}
 
+define-command fix-indentation-of-multiline-selections %{ try %{
+  # Eliminate single line selections.
+  execute-keys -draft '<a-k>\A[^\n]*\n.<ret>'
+  # Fix indentation of the remaining multi line selections
+  execute-keys -draft -with-hooks '<a-J>i<ret><esc>'
+} }
+
 declare-user-mode janet
 map global janet -docstring 'repl'      r ': connect-terminal janet<ret>'
 map global janet -docstring 'tracev'    t ': surround<ret>(<a-;>itracev <esc>'
@@ -151,6 +158,8 @@ map global janet -docstring 'unwrap'    W ': delete-surround<ret>('
 map global janet -docstring 'snips'     s ': enter-user-mode janet-snips<ret>'
 map global janet -docstring 'comment'   c ': comment-line<ret>'
 map global janet -docstring 'Comment'   C ': comment-block<ret>'
+map -docstring 'Fix indentation of multiline selections' \
+global janet '<tab>' ': fix-indentation-of-multiline-selections<ret>'
 
 declare-user-mode janet-snips
 map global janet-snips -docstring 'fn'        f     ': surround<ret>(<a-;>ifn []'
