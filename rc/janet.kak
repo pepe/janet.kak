@@ -157,8 +157,8 @@ map global janet -docstring 'Janet flycheck (error check)' f ': janet-fly<ret>'
 map global janet -docstring 'wrap'      w ': surround<ret>(ma<esc>'
 map global janet -docstring 'unwrap'    W ': delete-surround<ret>('
 map global janet -docstring 'snips'     s ': enter-user-mode janet-snips<ret>'
-map global janet -docstring 'comment'   c ': comment-line<ret>'
-map global janet -docstring 'Comment'   C ': comment-block<ret>'
+map global janet -docstring 'Comment line'   c ': comment-line<ret>'
+map global janet -docstring 'Comment block'   C ': comment-block<ret>'
 map -docstring 'Fix indentation of multiline selections' \
 global janet '<tab>' ': fix-indentation-of-multiline-selections<ret>'
 
