@@ -220,15 +220,15 @@ define-command -hidden janet-indent-on-new-line %{
     evaluate-commands -draft -save-regs '/"|^@iw' -itersel %{
         # Assign the left-most position to i register.
         execute-keys -draft 'gk"iZ'
+        # Remove leading spaces in the current line.
+        try %{ execute-keys -draft '<a-i><space>d' }
+        # Remove trailing spaces in the previous line
+        try %{ execute-keys -draft 'kgl<a-i><space>d' }
         # Try to indent inside a pair of parentheses.
         try %{
             # Set w register and i register to
             # the position to the right of an opening parenthesis.
             execute-keys -draft '[bl"i<a-Z><gt>"wZ'
-            # Remove leading spaces in the current line.
-            try %{ execute-keys -draft '<a-i><space>d' }
-            # Remove trailing spaces in the previous line
-            try %{ execute-keys -draft 'kgl<a-i><space>d' }
 
             try %{
                 # If it is a special form, indent 2 spaces.
