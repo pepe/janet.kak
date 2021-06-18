@@ -6,8 +6,8 @@
 # Detection
 # ‾‾‾‾‾‾‾‾‾
 
-hook global BufCreate .*[.](janet|jdn) %{
-    set-option buffer filetype janet
+hook global BufCreate '.*[.](janet|jdn)' %{
+  set-option buffer filetype janet
 }
 
 # Options
@@ -149,29 +149,12 @@ define-command fix-indentation-of-multiline-selections %{ try %{
 } }
 
 declare-user-mode janet
-map global janet -docstring 'repl'      r ': connect-terminal janet<ret>'
-map global janet -docstring 'tracev'    t ': surround<ret>(<a-;>itracev <esc>'
-map global janet -docstring 'strip '    T 'edd: delete-surround<ret>( <esc>'
 map global janet -docstring 'Janet doc' d ': janet-doc<ret>'
-map global janet -docstring 'wrap'      w ': surround<ret>(ma<esc>'
-map global janet -docstring 'unwrap'    W ': delete-surround<ret>('
-map global janet -docstring 'snips'     s ': enter-user-mode janet-snips<ret>'
-map global janet -docstring 'comment'   c ': comment-line<ret>'
-map global janet -docstring 'Comment'   C ': comment-block<ret>'
+map global janet -docstring 'Janet flycheck (error check)' f ': janet-fly<ret>'
+map global janet -docstring 'Comment line'   c ': comment-line<ret>'
+map global janet -docstring 'Comment block'   C ': comment-block<ret>'
 map -docstring 'Fix indentation of multiline selections' \
 global janet '<tab>' ': fix-indentation-of-multiline-selections<ret>'
-
-declare-user-mode janet-snips
-map global janet-snips -docstring 'fn'        f     ': surround<ret>(<a-;>ifn []'
-map global janet-snips -docstring 'defn'      F     ': surround<ret>(<a-;>idefn [] <esc><a-;>hi'
-map global janet-snips -docstring 'defn-'     <a-F> ': surround<ret>(<a-;>idefn- [] <esc><a-;>hi'
-map global janet-snips -docstring 'def'       D     ': surround<ret>(<a-;>idef  <esc>hi'
-map global janet-snips -docstring 'def-'      <a-d> ': surround<ret>(<a-;>idef-  <esc>hi'
-map global janet-snips -docstring 'var'       v     ': surround<ret>(<a-;>ivar  <esc>hi'
-map global janet-snips -docstring 'var-'      <a-v> ': surround<ret>(<a-;>ivar-  <esc>hi'
-map global janet-snips -docstring 'if'        i     ': surround<ret>(<a-;>iif  <esc>hi'
-map global janet-snips -docstring 'when'      w     ': surround<ret>(<a-;>iwhen  <esc>hi'
-map global janet-snips -docstring 'default'   e     ': surround<ret>(<a-;>idefault  <esc>hi'
 
 define-command -hidden janet-configure-window %{
     hook window ModeChange pop:insert:.* -group janet-trim-indent  janet-trim-indent
