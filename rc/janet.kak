@@ -200,7 +200,7 @@ declare-option \
     str-list janet_special_indent_forms \
     '(?:' \
     'def.*|while|for|fn\*?|if(-.*|)|let.*|loop|seq|with(-.*|)|when(-.*|)|' \
-    'defer|do|match|var|try' \
+    'defer|do|match|var|try|case|cond|generate' \
     ')'
 
 define-command -hidden janet-indent-2-spaces %{ try %{
