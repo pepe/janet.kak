@@ -51,7 +51,7 @@ hook -group janet-insert global BufNewFile .*[.](janet|jdn) %{
     require-module janet
 }
 
-provide-module janet %{
+provide-module -override janet %{
 
 require-module lisp
 
