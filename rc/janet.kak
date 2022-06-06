@@ -1,7 +1,9 @@
 # http://janet-lang.org
 # ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-# require lisp.kak
+provide-module -override janet %{
+
+require-module lisp
 
 # Detection
 # ‾‾‾‾‾‾‾‾‾
@@ -50,10 +52,6 @@ hook -group janet-highlight global WinSetOption filetype=janet %{
 hook -group janet-insert global BufNewFile .*[.](janet|jdn) %{
     require-module janet
 }
-
-provide-module -override janet %{
-
-require-module lisp
 
 # Highlighters
 # ‾‾‾‾‾‾‾‾‾‾‾‾
