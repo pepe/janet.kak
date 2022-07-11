@@ -1,12 +1,13 @@
 # http://janet-lang.org
 # ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-# require lisp.kak
+# Override built-in janet.kak hooks
+remove-hooks global janet
 
 # Detection
 # ‾‾‾‾‾‾‾‾‾
 
-hook global BufCreate '.*[.](janet|jdn)' %{
+hook -group janet global BufCreate '.*[.](janet|jdn)' %{
   set-option buffer filetype janet
 }
 
@@ -32,22 +33,22 @@ declare-option -docstring %{
 # Initialization
 # ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-hook global BufSetOption filetype=janet %{
+hook -group janet global BufSetOption filetype=janet %{
     require-module janet
     janet-configure-buffer
 }
 
-hook global WinSetOption filetype=janet %{
+hook -group janet global WinSetOption filetype=janet %{
     require-module janet
     janet-configure-window
 }
 
-hook -group janet-highlight global WinSetOption filetype=janet %{
+hook -group janet global WinSetOption filetype=janet %{
     add-highlighter window/janet ref janet
     hook -once -always window WinSetOption filetype=.* %{ remove-highlighter window/janet }
 }
 
-hook -group janet-insert global BufNewFile .*[.](janet|jdn) %{
+hook -group janet global BufNewFile .*[.](janet|jdn) %{
     require-module janet
 }
 
