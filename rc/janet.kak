@@ -3,6 +3,7 @@
 
 # Override built-in janet.kak hooks
 remove-hooks global janet
+remove-hooks global janet-highlight
 
 # Detection
 # ‾‾‾‾‾‾‾‾‾
